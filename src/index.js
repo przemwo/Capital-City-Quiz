@@ -1,2 +1,2 @@
-/* eslint-disable no-console */
-console.log('hi');
+import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+import './styles/styles.css';

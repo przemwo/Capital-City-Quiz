@@ -6,7 +6,7 @@ import open from 'open';
 
 /* eslint-disable no-console */
 
-const port = 3000;
+const port = 3030;
 const app = express();
 const compiler = webpack(config);
 
@@ -25,6 +25,6 @@ app.listen(port, function(err) {
   if (err) {
     console.log(err);
   } else {
-    open(`http://localhost:${port}`);
+    // open(`http://localhost:${port}`);
   }
 });

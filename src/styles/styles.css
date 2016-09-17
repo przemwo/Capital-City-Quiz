@@ -1,0 +1,16 @@
+.game-container {
+  max-width: 640px;
+}
+.gameboard {
+  margin: 2em 0;
+}
+.gameboard h2 {
+  margin: 1em 0;
+}
+.gameboard .radio label {
+}
+.question-counter {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
