@@ -1,1 +1,2 @@
 export const GET_ALL_CAPITALS = 'GET_ALL_CAPITALS';
+export const CHOOSE_CAPITALS = 'CHOOSE_CAPITALS';
