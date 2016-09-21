@@ -18,32 +18,43 @@ const Question = ({question}) => {
   );
 };
 
-const Answer = ({answer}) => {
+const Answer = ({answer, tmp, onCheckboxChange}) => {
+  console.log(tmp);
   return (
-    <div className="radio">
+    <div className={`radio ${tmp}`}>
       <label>
-        <input type="radio" name="optionsRadios" id="optionsRadios1" value="option1" />
+        <input
+          type="radio"
+          name="optionsRadios"
+          onClick={onCheckboxChange}
+        />
         {answer.capital}
       </label>
     </div>
   );
 };
 
-const Answers = ({answers}) => {
+const Answers = ({answers, question, onCheckboxChange, isShowingAnswer}) => {
   return (
     <div>
       {answers.map(answer =>
-        <Answer answer={answer} key={answer.id} />
+        <Answer
+          answer={answer}
+          tmp={(isShowingAnswer) ? (JSON.stringify(answer) === JSON.stringify(question)) ? 'bg-success' : 'bg-warning' : ''}
+          onCheckboxChange={onCheckboxChange.bind(null, answer)}
+          key={answer.id} />
       )}
     </div>
   );
 };
 
-const CheckItBtn = () => {
+const CheckItBtn = ({onClickBtn, isActive, isShowingAnswer}) => {
   return (
     <div className="text-center">
       <button
         className="btn btn-primary btn-lg"
+        onClick={onClickBtn}
+        disabled={isShowingAnswer || !isActive}
       >
         Check it!
       </button>
@@ -56,7 +67,10 @@ class App extends React.Component {
     capitals: [],
     counter: 0,
     question: {},
-    answers: []
+    answers: [],
+    answer: {},
+    isBtnActive: false,
+    isShowingAnswer: false
   };
 
   constructor(props) {
@@ -65,6 +79,7 @@ class App extends React.Component {
 
   componentDidUpdate () {
     console.log('Did update!');
+    // console.log(this.state.answer);
   }
 
   componentDidMount () {
@@ -74,13 +89,13 @@ class App extends React.Component {
       const counter = this.state.counter + 1;
       const question = this.getOneCountry(capitals);
       const answers = this.getAnswers(capitals, question);
+      // TODO: sort answers
       this.setState({
         capitals: res,
         counter: counter,
         question: question,
         answers: answers
       });
-      console.log(this.state.answers);
     });
   }
 
@@ -94,7 +109,6 @@ class App extends React.Component {
   getAnswers = (capitals, question, num = 2) => {
     let counter = 0;
     const answers = [question];
-    // const questionString = JSON.stringify(question);
     while (counter < num) {
       const tmpAnswer = this.getOneCountry(capitals);
       const tmp = answers.filter(answer => {
@@ -108,6 +122,29 @@ class App extends React.Component {
     return answers;
   };
 
+  // User selected an answer
+  handleCheckboxChange = (answer) => {
+    this.setState({
+      answer: answer,
+      isBtnActive: true
+    });
+  }
+
+  // Check if answer is right?
+  onClickCheckIt = () => {
+    const question = this.state.question;
+    const answer = this.state.answer;
+    if(JSON.stringify(question) === JSON.stringify(answer)) {
+      console.log('OK!');
+    } else {
+      console.log('NOT OK!');
+    }
+    this.setState({
+      isBtnActive: false,
+      isShowingAnswer: true
+    });
+  }
+
   render () {
     return (
       <div className="container game-container">
@@ -119,9 +156,9 @@ class App extends React.Component {
 
               <Question question={this.state.question} />
 
-              <Answers answers={this.state.answers} />
+              <Answers answers={this.state.answers} question={this.state.question} isShowingAnswer={this.state.isShowingAnswer} onCheckboxChange={this.handleCheckboxChange} />
 
-              <CheckItBtn />
+              <CheckItBtn onClickBtn={this.onClickCheckIt} isActive={this.state.isBtnActive} isShowingAnswer={this.state.isShowingAnswer} />
 
             </div>
           </div>
