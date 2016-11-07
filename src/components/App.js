@@ -88,8 +88,8 @@ class App extends React.Component {
       const capitals = res;
       const counter = this.state.counter + 1;
       const question = this.getOneCountry(capitals);
-      const answers = this.getAnswers(capitals, question);
-      // TODO: sort answers
+      let answers = this.getAnswers(capitals, question);
+      answers = this.shuffle(answers);
       this.setState({
         capitals: res,
         counter: counter,
@@ -120,6 +120,26 @@ class App extends React.Component {
       }
     }
     return answers;
+  };
+
+  shuffle = (array) => {
+    array = Object.assign([], array);
+    let currentIndex = array.length, temporaryValue, randomIndex;
+
+      // While there remain elements to shuffle...
+      while (0 !== currentIndex) {
+
+        // Pick a remaining element...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+
+        // And swap it with the current element.
+        temporaryValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = temporaryValue;
+      }
+
+      return array;
   };
 
   // User selected an answer

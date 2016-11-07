@@ -7,12 +7,12 @@ import { getAllCapitals } from './actions/actions';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import './styles/styles.css';
 
-const store = configureStore();
-store.dispatch(getAllCapitals());
+// const store = configureStore();
+// store.dispatch(getAllCapitals());
 
 ReactDOM.render(
-  <Provider store={store}>
-    <App />
-  </Provider>,
+  // <Provider store={store}>
+    <App />,
+  // </Provider>,
   document.getElementById('app')
 );
