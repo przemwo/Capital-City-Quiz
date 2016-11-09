@@ -4,7 +4,7 @@ import capitalApi from '../api/mockCapitalApi';
 const Counter = ({counter}) => {
   return (
     <div className="question-counter">
-      <h4>{counter}/10</h4>
+      <h5>Question: {counter}/10</h5>
     </div>
   );
 };
@@ -18,29 +18,33 @@ const Question = ({question}) => {
   );
 };
 
-const Answer = ({answer, tmp, onCheckboxChange}) => {
-  console.log(tmp);
+const Answer = ({answer, selectedAnswer, isRightAnswer, isShowingAnswer, onCheckboxChange}) => {
+
   return (
-    <div className={`radio ${tmp}`}>
+    <div className="radio" style={(isShowingAnswer && !isRightAnswer) ? {color: '#b0b0b0'} : {}}>
       <label>
         <input
           type="radio"
           name="optionsRadios"
-          onClick={onCheckboxChange}
+          onChange={onCheckboxChange}
+          checked={selectedAnswer === answer.capital}
         />
-        {answer.capital}
+      {answer.capital} {isRightAnswer && <span className="glyphicon glyphicon-ok" aria-hidden="true"></span>}
       </label>
     </div>
   );
 };
 
-const Answers = ({answers, question, onCheckboxChange, isShowingAnswer}) => {
+const Answers = ({answers, question, answer, onCheckboxChange, isShowingAnswer}) => {
+  const selectedAnswer = answer.capital;
   return (
     <div>
       {answers.map(answer =>
         <Answer
           answer={answer}
-          tmp={(isShowingAnswer) ? (JSON.stringify(answer) === JSON.stringify(question)) ? 'bg-success' : 'bg-warning' : ''}
+          selectedAnswer={selectedAnswer}
+          isRightAnswer={isShowingAnswer && (JSON.stringify(answer) === JSON.stringify(question))}
+          isShowingAnswer={isShowingAnswer}
           onCheckboxChange={onCheckboxChange.bind(null, answer)}
           key={answer.id} />
       )}
@@ -48,15 +52,15 @@ const Answers = ({answers, question, onCheckboxChange, isShowingAnswer}) => {
   );
 };
 
-const CheckItBtn = ({onClickBtn, isActive, isShowingAnswer}) => {
+const Button = ({onClick, disabled, copy}) => {
   return (
     <div className="text-center">
       <button
         className="btn btn-primary btn-lg"
-        onClick={onClickBtn}
-        disabled={isShowingAnswer || !isActive}
+        onClick={onClick}
+        disabled={disabled}
       >
-        Check it!
+        {copy}
       </button>
     </div>
   );
@@ -69,7 +73,6 @@ class App extends React.Component {
     question: {},
     answers: [],
     answer: {},
-    isBtnActive: false,
     isShowingAnswer: false
   };
 
@@ -145,8 +148,7 @@ class App extends React.Component {
   // User selected an answer
   handleCheckboxChange = (answer) => {
     this.setState({
-      answer: answer,
-      isBtnActive: true
+      answer: answer
     });
   }
 
@@ -160,25 +162,48 @@ class App extends React.Component {
       console.log('NOT OK!');
     }
     this.setState({
-      isBtnActive: false,
       isShowingAnswer: true
+    });
+  }
+  onClickNext = () => {
+    const counter = this.state.counter + 1;
+    const question = this.getOneCountry(this.state.capitals);
+    let answers = this.getAnswers(this.state.capitals, question);
+    answers = this.shuffle(answers);
+    this.setState({
+      answer: {},
+      counter: counter,
+      question: question,
+      answers: answers,
+      isShowingAnswer: false
     });
   }
 
   render () {
+    const isBtnActive = Object.keys(this.state.answer).length > 0;
+    const btnCopy = this.state.capitals.length === 0 ? 'Loading...' : this.state.isShowingAnswer ? 'Next' : 'Check it!';
+    let onClickBtn;
+    if(this.state.isShowingAnswer) {
+      onClickBtn = this.onClickNext;
+    } else {
+      onClickBtn = this.onClickCheckIt;
+    }
     return (
       <div className="container game-container">
         <div className="jumbotron gameboard">
           <div className="row">
             <div className="col-xs-12">
 
-              <Counter counter={this.state.counter} />
+              {this.state.question.country && <Counter counter={this.state.counter} />}
 
-              <Question question={this.state.question} />
+              {this.state.question.country && <Question question={this.state.question} />}
 
-              <Answers answers={this.state.answers} question={this.state.question} isShowingAnswer={this.state.isShowingAnswer} onCheckboxChange={this.handleCheckboxChange} />
+              <Answers answers={this.state.answers} question={this.state.question} answer={this.state.answer} isShowingAnswer={this.state.isShowingAnswer} onCheckboxChange={this.handleCheckboxChange} />
 
-              <CheckItBtn onClickBtn={this.onClickCheckIt} isActive={this.state.isBtnActive} isShowingAnswer={this.state.isShowingAnswer} />
+              <Button
+                copy={btnCopy}
+                onClick={onClickBtn}
+                disabled = {!isBtnActive} />
 
             </div>
           </div>
