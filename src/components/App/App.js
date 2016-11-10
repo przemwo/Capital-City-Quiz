@@ -1,5 +1,5 @@
 import React from 'react';
-import capitalApi from '../api/mockCapitalApi';
+import capitalApi from '../../api/mockCapitalApi';
 
 const Counter = ({counter}) => {
   return (
@@ -26,7 +26,7 @@ const Answer = ({answer, selectedAnswer, isRightAnswer, isShowingAnswer, onCheck
         <input
           type="radio"
           name="optionsRadios"
-          onChange={onCheckboxChange}
+          onChange={isShowingAnswer ? null : onCheckboxChange} //prevent onChange when presenting answer
           checked={selectedAnswer === answer.capital}
         />
       {answer.capital} {isRightAnswer && <span className="glyphicon glyphicon-ok" aria-hidden="true"></span>}
@@ -52,54 +52,52 @@ const Answers = ({answers, question, answer, onCheckboxChange, isShowingAnswer})
   );
 };
 
-const Button = ({onClick, disabled, copy}) => {
+const Button = (props) => {
   return (
     <div className="text-center">
       <button
         className="btn btn-primary btn-lg"
-        onClick={onClick}
-        disabled={disabled}
+        onClick={props.onClick}
+        disabled={props.disabled}
       >
-        {copy}
+        {props.children}
       </button>
     </div>
   );
 };
 
-class App extends React.Component {
-  state = {
-    capitals: [],
-    counter: 0,
-    question: {},
-    answers: [],
-    answer: {},
-    isShowingAnswer: false
-  };
+class GameContainer extends React.Component {
 
   constructor(props) {
     super(props);
+    this.state = {
+      counter: 0,
+      question: {},
+      answers: [],
+      selectedAnswer: {},
+      isShowingAnswer: false
+    };
   }
+
+  componentDidMount() {
+    if(!this.props.capitals) return;
+    const capitals = this.props.capitals;
+    const counter = this.state.counter + 1;
+    const question = this.getOneCountry(capitals);
+    let answers = this.getAnswers(capitals, question);
+    answers = this.shuffle(answers);
+    this.setState({
+      counter: counter,
+      question: question,
+      answers: answers
+    });
+    console.log(1);
+  }
+
+
 
   componentDidUpdate () {
     console.log('Did update!');
-    // console.log(this.state.answer);
-  }
-
-  componentDidMount () {
-    // Get all capitals and update state
-    capitalApi.getCapitals().then(res => {
-      const capitals = res;
-      const counter = this.state.counter + 1;
-      const question = this.getOneCountry(capitals);
-      let answers = this.getAnswers(capitals, question);
-      answers = this.shuffle(answers);
-      this.setState({
-        capitals: res,
-        counter: counter,
-        question: question,
-        answers: answers
-      });
-    });
   }
 
   // Choose one country
@@ -148,14 +146,14 @@ class App extends React.Component {
   // User selected an answer
   handleCheckboxChange = (answer) => {
     this.setState({
-      answer: answer
+      selectedAnswer: answer
     });
   }
 
   // Check if answer is right?
   onClickCheckIt = () => {
     const question = this.state.question;
-    const answer = this.state.answer;
+    const answer = this.state.selectedAnswer;
     if(JSON.stringify(question) === JSON.stringify(answer)) {
       console.log('OK!');
     } else {
@@ -167,11 +165,11 @@ class App extends React.Component {
   }
   onClickNext = () => {
     const counter = this.state.counter + 1;
-    const question = this.getOneCountry(this.state.capitals);
-    let answers = this.getAnswers(this.state.capitals, question);
+    const question = this.getOneCountry(this.props.capitals);
+    let answers = this.getAnswers(this.props.capitals, question);
     answers = this.shuffle(answers);
     this.setState({
-      answer: {},
+      selectedAnswer: {},
       counter: counter,
       question: question,
       answers: answers,
@@ -180,8 +178,8 @@ class App extends React.Component {
   }
 
   render () {
-    const isBtnActive = Object.keys(this.state.answer).length > 0;
-    const btnCopy = this.state.capitals.length === 0 ? 'Loading...' : this.state.isShowingAnswer ? 'Next' : 'Check it!';
+    const isBtnActive = Object.keys(this.state.selectedAnswer).length > 0;
+    const btnCopy = (this.props.capitals.length === 0) ? 'Loading...' : this.state.isShowingAnswer ? 'Next' : 'Check it!';
     let onClickBtn;
     if(this.state.isShowingAnswer) {
       onClickBtn = this.onClickNext;
@@ -189,27 +187,62 @@ class App extends React.Component {
       onClickBtn = this.onClickCheckIt;
     }
     return (
-      <div className="container game-container">
-        <div className="jumbotron gameboard">
-          <div className="row">
-            <div className="col-xs-12">
-
-              {this.state.question.country && <Counter counter={this.state.counter} />}
-
-              {this.state.question.country && <Question question={this.state.question} />}
-
-              <Answers answers={this.state.answers} question={this.state.question} answer={this.state.answer} isShowingAnswer={this.state.isShowingAnswer} onCheckboxChange={this.handleCheckboxChange} />
-
-              <Button
-                copy={btnCopy}
-                onClick={onClickBtn}
-                disabled = {!isBtnActive} />
-
-            </div>
-          </div>
+      <div>
+        <Counter counter={this.state.counter} />
+        <Question question={this.state.question} />
+        <div className="text-center">
+          <img src={require('../../assets/images/face_thinking.png')} style={{width: '75px'}} />
         </div>
+        <Answers
+          answers={this.state.answers}
+          question={this.state.question}
+          answer={this.state.selectedAnswer}
+          isShowingAnswer={this.state.isShowingAnswer}
+          onCheckboxChange={this.handleCheckboxChange} />
+        <Button
+          onClick={onClickBtn}
+          disabled = {!isBtnActive}>
+          {btnCopy}
+        </Button>
       </div>
     );
   }
 }
+
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { capitals: [] };
+  }
+  componentDidMount () {
+    // Get all capitals and update state
+    capitalApi.getCapitals().then(res => {
+      this.setState({
+        capitals: res,
+      });
+    });
+  }
+  render() {
+
+    return(
+      <div className="container game-container">
+        <div className="jumbotron gameboard">
+          <div className="row">
+            <div className="col-xs-12">
+                {this.state.capitals.length === 0 ? (
+                  <div className="text-center">
+                    <h2>Loading...</h2>
+                  </div>
+                ) : (
+                  <GameContainer capitals={this.state.capitals} />
+                )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+    );
+  }
+}
+
 export default App;
