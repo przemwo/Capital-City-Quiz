@@ -4,7 +4,43 @@ import capitalApi from '../../api/mockCapitalApi';
 const Counter = ({counter}) => {
   return (
     <div className="question-counter">
-      <h5>Question: {counter}/10</h5>
+      Question: {counter}/10
+    </div>
+  );
+};
+
+const SettingsButton = (props) => {
+  const handleClick = () => {
+    console.log(111);
+    props.handleClick();
+  };
+  return(
+    <div className="settings">
+      <button
+        className="btn btn-default btn-sm"
+        onClick={handleClick}>
+        <span className="glyphicon glyphicon-cog" aria-hidden="true"></span> <strong>settings</strong>
+      </button>
+    </div>
+  );
+};
+
+const Settings = (props) => {
+  return(
+    <div className="panel panel-default">
+      <label>
+        {'How many questions?'}
+        <input type="text"/>
+      </label>
+      <br />
+      <label>
+        <select value={true} onChange={null}>
+          <option value="grapefruit">Grapefruit</option>
+          <option value="lime">Lime</option>
+          <option value="coconut">Coconut</option>
+          <option value="mango">Mango</option>
+        </select>
+      </label>
     </div>
   );
 };
@@ -75,7 +111,8 @@ class GameContainer extends React.Component {
       question: {},
       answers: [],
       selectedAnswer: {},
-      isShowingAnswer: false
+      isShowingAnswer: false,
+      toggleSettings: false
     };
   }
 
@@ -177,6 +214,13 @@ class GameContainer extends React.Component {
     });
   }
 
+  settingsToggle = () => {
+    this.setState((prevState) => ({
+      toggleSettings: !prevState.toggleSettings
+    }));
+    console.log(this);
+  };
+
   render () {
     const isBtnActive = Object.keys(this.state.selectedAnswer).length > 0;
     const btnCopy = (this.props.capitals.length === 0) ? 'Loading...' : this.state.isShowingAnswer ? 'Next' : 'Check it!';
@@ -188,6 +232,8 @@ class GameContainer extends React.Component {
     }
     return (
       <div>
+        <SettingsButton handleClick={this.settingsToggle} />
+        {this.state.toggleSettings && <Settings />}
         <Counter counter={this.state.counter} />
         <Question question={this.state.question} />
         <div className="text-center">
